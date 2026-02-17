@@ -10,6 +10,7 @@
 
 int main(int argc, char *argv[]) {
   char buf[50] = "\0";
+  char result[500] = "\0";
   // TODO: bf (stdin) et bf -c (string)
   // bf file:
   FILE *fd = fopen(argv[1], "r");
@@ -17,6 +18,7 @@ int main(int argc, char *argv[]) {
     err(EXIT_FAILURE, "Error: can not read or find %s", argv[1]);
   }
   parse_fd(fd, buf);
-  printf("\n%s\n", buf);
+  convert(buf, result);
+  printf("%s\n", result);
   return 0;
 }
