@@ -50,7 +50,8 @@ char *convert(char *bf_code, char *buf) {
     case '[':
       char loop_start[32];
       char exec_start[32];
-      snprintf(loop_start, sizeof(loop_start), "\nloop%d: # [\n", loop_id);
+      snprintf(loop_start, sizeof(loop_start),
+              "    jmp loop%d\n\nloop%d: # [\n", loop_id, loop_id);
       snprintf(exec_start, sizeof(exec_start), "    je execute%d # [\n",
                loop_id);
       loop_stack[sp++] = loop_id;
