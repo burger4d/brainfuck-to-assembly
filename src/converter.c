@@ -4,13 +4,13 @@ char *convert(char *bf_code, char *buf)
 {
     // %r8 -> pointer
     // %r9 -> buffer for array values to modify
-    // %rax -> our array with 30000
+    // allocating 30008 instead of 30000 to be aligned
 
-
-    // preparing the memset(array, 0, 30000)
+    // preparing the memset(array, 0, 30008)
     strcat(buf, ".global execute\n\n");
     strcat(buf, "execute:\n");
-	strcat(buf, "    movq %rax, %rdi\n"); // 1st arg
+    strcat(buf, "    subq $30008, %rsp\n");
+	strcat(buf, "    movq %rsp, %rdi\n"); // 1st arg
 	strcat(buf, "    movl $0, %esi\n"); // 2nd arg
     strcat(buf, "    movl $30000, %edx\n"); // 3rd arg 
 	strcat(buf, "    call memset@PLT\n"); // call memset
@@ -28,14 +28,14 @@ char *convert(char *bf_code, char *buf)
                 strcat(buf, "    subq $1, %r8\n");
                 break;
             case '+':
-                strcat(buf, "    movq (%rax, %r8), %r9\n");
+                strcat(buf, "    movq (%rsp, %r8), %r9\n");
                 strcat(buf, "    addq $1, %r9\n");
-                strcat(buf, "    movq %r9, (%rax, %r8)\n");
+                strcat(buf, "    movq %r9, (%rsp, %r8)\n");
                 break;
             case '-':
-                strcat(buf, "    movq (%rax, %r8), %r9\n");
+                strcat(buf, "    movq (%rsp, %r8), %r9\n");
                 strcat(buf, "    subq $1, %r9\n");
-                strcat(buf, "    movq %r9, (%rax, %r8)\n");
+                strcat(buf, "    movq %r9, (%rsp, %r8)\n");
                 break;
             case '.':
                 strcat(buf, "    movl $97, %edi\n");
@@ -45,6 +45,8 @@ char *convert(char *bf_code, char *buf)
                 fprintf(stderr, "char dismissed: %c\n", c);
         }
     }
+    strcat(buf, "    addq $30008, %rsp\n");
+    strcat(buf, "    ret\n");
     strcat(buf, ".section	.note.GNU-stack,\"\",@progbits");
 
     return buf;
