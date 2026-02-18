@@ -3,7 +3,7 @@
 char *convert(char *bf_code, char *buf)
 {
     // %r8 -> pointer
-    // %r9 -> buffer for array values to modify
+    // %r9b -> buffer for array values to modify
     // allocating 30008 instead of 30000 to be aligned
 
     // preparing the memset(array, 0, 30008)
@@ -28,14 +28,14 @@ char *convert(char *bf_code, char *buf)
                 strcat(buf, "    subq $1, %r8\n");
                 break;
             case '+':
-                strcat(buf, "    movq (%rsp, %r8), %r9\n");
-                strcat(buf, "    addq $1, %r9\n");
-                strcat(buf, "    movq %r9, (%rsp, %r8)\n");
+                strcat(buf, "    movb (%rsp, %r8), %r9b\n");
+                strcat(buf, "    addb $1, %r9b\n");
+                strcat(buf, "    movb %r9b, (%rsp, %r8)\n");
                 break;
             case '-':
-                strcat(buf, "    movq (%rsp, %r8), %r9\n");
-                strcat(buf, "    subq $1, %r9\n");
-                strcat(buf, "    movq %r9, (%rsp, %r8)\n");
+                strcat(buf, "    movb (%rsp, %r8), %r9b\n");
+                strcat(buf, "    subb $1, %r9b\n");
+                strcat(buf, "    movb %r9b, (%rsp, %r8)\n");
                 break;
             case '.':
                 strcat(buf, "    movl $97, %edi\n");
