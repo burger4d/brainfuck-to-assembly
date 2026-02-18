@@ -23,8 +23,7 @@ int main(int argc, char *argv[]) {
   fclose(fd);
   convert(buf, result);
   FILE *output = fopen("output.S", "w");
-  if (!output)
-  {
+  if (!output) {
     err(EXIT_FAILURE, "Error: can not write");
   }
   fprintf(output, "%s", result);
