@@ -7,8 +7,5 @@ all: $(OBJS) # linking
 %.o: %.c # compiling
 	gcc -o $@ -c $^
 
-#run: all output.S
-#	gcc output.S run.c -o
-
 clean:
-	rm -rf $(OBJS) bf
+	rm -rf $(OBJS) bf output.S

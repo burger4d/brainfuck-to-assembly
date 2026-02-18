@@ -8,9 +8,11 @@
 #include "converter.h"
 #include "parser.h"
 
+#define BUFFER_SIZE 60000
+
 int main(int argc, char *argv[]) {
-  char buf[50] = "\0";
-  char result[500] = "\0";
+  char buf[BUFFER_SIZE] = "\0";
+  char result[BUFFER_SIZE] = "\0";
   // TODO: bf (stdin) et bf -c (string)
   // bf file:
   FILE *fd = fopen(argv[1], "r");
@@ -18,7 +20,14 @@ int main(int argc, char *argv[]) {
     err(EXIT_FAILURE, "Error: can not read or find %s", argv[1]);
   }
   parse_fd(fd, buf);
+  fclose(fd);
   convert(buf, result);
-  printf("%s\n", result);
+  FILE *output = fopen("output.S", "w");
+  if (!output)
+  {
+    err(EXIT_FAILURE, "Error: can not write");
+  }
+  fprintf(output, "%s", result);
+  fclose(output);
   return 0;
 }
