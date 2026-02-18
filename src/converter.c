@@ -2,19 +2,18 @@
 
 char *convert(char *bf_code, char *buf)
 {
-    // %r8 -> pointer
-    // %r9b -> buffer for array values to modify
-    // allocating 30008 instead of 30000 to be aligned
-
-    // preparing the memset(array, 0, 30008)
+    // %r8 -> pointer to stack %rsp
+    // %r9 -> pointer
+    // preparing the memset(array, 0, 30016)
     strcat(buf, ".global execute\n\n");
     strcat(buf, "execute:\n");
-    strcat(buf, "    subq $30008, %rsp\n");
-	strcat(buf, "    movq %rsp, %rdi\n"); // 1st arg
+    strcat(buf, "    subq $30016, %rsp\n");
+	strcat(buf, "    movq %rsp, %r8\n"); // 1st arg
+	strcat(buf, "    movq %r8, %rdi\n"); // 1st arg
 	strcat(buf, "    movl $0, %esi\n"); // 2nd arg
     strcat(buf, "    movl $30000, %edx\n"); // 3rd arg 
 	strcat(buf, "    call memset@PLT\n"); // call memset
-    strcat(buf, "    movq $0, %r8\n"); // %r8 will be our pointer
+    strcat(buf, "    movq $0, %r9\n"); // %r9 will be our pointer
 
     for (size_t i = 0; i < strlen(bf_code); i++)
     {
@@ -22,30 +21,36 @@ char *convert(char *bf_code, char *buf)
         switch (c)
         {
             case '>':
-                strcat(buf, "    addq $1, %r8\n");
+                strcat(buf, "    addq $1, %r9\n");
                 break;
             case '<':
-                strcat(buf, "    subq $1, %r8\n");
+                strcat(buf, "    subq $1, %r9\n");
                 break;
             case '+':
-                strcat(buf, "    movb (%rsp, %r8), %r9b\n");
-                strcat(buf, "    addb $1, %r9b\n");
-                strcat(buf, "    movb %r9b, (%rsp, %r8)\n");
+                strcat(buf, "    addb $1, (%r8, %r9, 1)\n");
                 break;
             case '-':
-                strcat(buf, "    movb (%rsp, %r8), %r9b\n");
-                strcat(buf, "    subb $1, %r9b\n");
-                strcat(buf, "    movb %r9b, (%rsp, %r8)\n");
+                strcat(buf, "    subb $1, (%r8, %r9, 1)\n");
                 break;
             case '.':
-                strcat(buf, "    movl $97, %edi\n");
+                strcat(buf, "    movzbl (%r8, %r9), %edi\n");
                 strcat(buf, "    call putchar@PLT\n");
+                break;
+            case '[':
+                strcat(buf, "    jmp loop1\n\n");
+                strcat(buf, "loop1:\n");
+                strcat(buf, "    cmpb $0, (%r8, %r9, 1)\n");
+                strcat(buf, "    je execute2\n");
+                break;
+            case ']':
+                strcat(buf, "    jmp loop1\n\n");
+                strcat(buf, "execute2:\n");
                 break;
             default:
                 fprintf(stderr, "char dismissed: %c\n", c);
         }
     }
-    strcat(buf, "    addq $30008, %rsp\n");
+    strcat(buf, "    addq $30016, %rsp\n");
     strcat(buf, "    ret\n");
     strcat(buf, ".section	.note.GNU-stack,\"\",@progbits");
 
