@@ -9,7 +9,7 @@ reference (from here: https://pypi.org/project/brainfuck-interpreter/).
 
 ## Usage of the binary
 - Convert from a file: `./bf file`
-- Convert from a string: `./bf -c "[code in brainfuck]"
+- Convert from a string: `./bf -c "[code in brainfuck]"`
 - Convert from stdin (TODO): `echo "[code]" | ./bf`
 
 Once the output.S is generated, you can compile it with `gcc check.c output.S`.
