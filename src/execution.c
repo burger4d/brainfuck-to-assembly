@@ -16,7 +16,7 @@ int main(int argc, char *argv[])
     char result[BUFFER_SIZE] = "\0";
     // TODO: bf (stdin)
     // bf file:
-    if (!strcmp("-c", argv[1]))
+    if (argc == 3 && !strcmp("-c", argv[1]))
     {
         // ./bf -c "..."
         parse_c_string(argv[2], buf);
@@ -31,14 +31,15 @@ int main(int argc, char *argv[])
         }
         parse_fd(fd, buf);
         fclose(fd);
-        convert(buf, result);
-        FILE *output = fopen("output.S", "w");
-        if (!output)
-        {
-            err(EXIT_FAILURE, "Error: can not write");
-        }
-        fprintf(output, "%s", result);
-        fclose(output);
     }
+
+    convert(buf, result); // '++comM ents +' -> '+++'
+    FILE *output = fopen("output.S", "w");
+    if (!output)
+    {
+        err(EXIT_FAILURE, "Error: can not write");
+    }
+    fprintf(output, "%s", result);
+    fclose(output);
     return 0;
 }
