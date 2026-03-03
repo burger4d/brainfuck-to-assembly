@@ -18,7 +18,7 @@ void init(char *buf) {
 void finish(char *buf) {
   strcat(buf, "    addq $30016, %rsp\n");
   strcat(buf, "    ret\n");
-  strcat(buf, ".section	.note.GNU-stack,\"\",@progbits");
+  // strcat(buf, ".section	.note.GNU-stack,\"\",@progbits");
 }
 
 char *convert(char *bf_code, char *buf) {
@@ -44,7 +44,8 @@ char *convert(char *bf_code, char *buf) {
       strcat(buf, "    subb $1, (%r8, %r9, 1) # -\n");
       break;
     case '.':
-      strcat(buf, "    movzbl (%r8, %r9, 1), %edi # .\n");
+      // strcat(buf, "    movzbl (%r8, %r9, 1), %edi # .\n");
+      strcat(buf, "    movq (%r8, %r9, 1), %rdi # .\n");
       strcat(buf, "    call putchar@PLT\n");
       break;
     case '[':
