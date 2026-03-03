@@ -16,4 +16,4 @@ check: all
 	@$(PY) -m pytest --tb=no
 
 clean:
-	rm -rf $(OBJS) bf output.S a.out
+	rm -rf $(OBJS) $(VENV) bf output.S a.out tests/__pycache__/
