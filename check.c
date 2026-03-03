@@ -1,7 +1,8 @@
 
 void execute();
 
-int main(void) {
-  execute();
-  return 0;
+int main(void)
+{
+    execute();
+    return 0;
 }
