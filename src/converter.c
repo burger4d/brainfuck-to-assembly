@@ -2,25 +2,28 @@
 
 void init(char *buf)
 {
-    // %r8 -> pointer to stack %rsp
-    // %r9 -> pointer
+    // %r12 -> pointer to stack %rsp
+    // %r13 -> pointer
     // preparing the memset(array, 0, 30016)
     strcat(buf, ".global execute\n\n");
     strcat(buf, "execute:\n");
+    strcat(buf, "    push %r12\n");
+    strcat(buf, "    push %r13\n");
     strcat(buf, "    subq $30016, %rsp\n");
-    strcat(buf, "    movq %rsp, %r8\n"); // 1st arg
-    strcat(buf, "    movq %r8, %rdi\n"); // 1st arg
+    strcat(buf, "    movq %rsp, %r12\n"); // 1st arg
+    strcat(buf, "    movq %r12, %rdi\n"); // 1st arg
     strcat(buf, "    movl $0, %esi\n"); // 2nd arg
     strcat(buf, "    movl $30016, %edx\n"); // 3rd arg
     strcat(buf, "    call memset@PLT\n"); // call memset
-    strcat(buf, "    movq $0, %r9\n"); // %r9 will be our pointer
+    strcat(buf, "    movq $0, %r13\n"); // %r13 will be our pointer
 }
 
 void finish(char *buf)
 {
     strcat(buf, "    addq $30016, %rsp\n");
+    strcat(buf, "    pop %r13\n");
+    strcat(buf, "    pop %r12\n");
     strcat(buf, "    ret\n");
-    // strcat(buf, ".section	.note.GNU-stack,\"\",@progbits");
 }
 
 char *convert(char *bf_code, char *buf)
@@ -37,20 +40,19 @@ char *convert(char *bf_code, char *buf)
         switch (c)
         {
         case '>':
-            strcat(buf, "    addq $1, %r9 # >\n");
+            strcat(buf, "    addq $1, %r13 # >\n");
             break;
         case '<':
-            strcat(buf, "    subq $1, %r9 # <\n");
+            strcat(buf, "    subq $1, %r13 # <\n");
             break;
         case '+':
-            strcat(buf, "    addb $1, (%r8, %r9, 1) # +\n");
+            strcat(buf, "    addb $1, (%r12, %r13, 1) # +\n");
             break;
         case '-':
-            strcat(buf, "    subb $1, (%r8, %r9, 1) # -\n");
+            strcat(buf, "    subb $1, (%r12, %r13, 1) # -\n");
             break;
         case '.':
-            // strcat(buf, "    movzbl (%r8, %r9, 1), %edi # .\n");
-            strcat(buf, "    movq (%r8, %r9, 1), %rdi # .\n");
+            strcat(buf, "    movzbq (%r12, %r13, 1), %rdi # .\n");
             strcat(buf, "    call putchar@PLT\n");
             break;
         case '[':
@@ -63,7 +65,7 @@ char *convert(char *bf_code, char *buf)
             loop_stack[sp++] = loop_id;
             loop_id++;
             strcat(buf, loop_start);
-            strcat(buf, "    cmpb $0, (%r8, %r9, 1)\n");
+            strcat(buf, "    cmpb $0, (%r12, %r13, 1)\n");
             strcat(buf, exec_start);
             break;
         case ']':

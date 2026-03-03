@@ -13,7 +13,7 @@ all: $(OBJS) # linking
 check: all
 	@python3 -m venv $(VENV)
 	@$(PY) -m pip install -r tests/requirements.txt
-	@$(PY) -m pytest
+	@$(PY) -m pytest --tb=no
 
 clean:
 	rm -rf $(OBJS) bf output.S a.out
