@@ -8,19 +8,14 @@ def run_code(code):
     result = sp.run(["./a.out"], stdout=sp.PIPE)
     return result.stdout.decode("utf-8")
 
-def run_ref(code, capsys):
-    interpreter = bf.Interpreter()
-    interpreter.execute(code)
-    return capsys.readouterr().out
-    
-
-def test_print_H_72(capsys):
+def test_print_H_72():
     code = """++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++."""
-    assert run_code(code) == run_ref(code, capsys)
-    # interpreter = bf.Interpreter()
-    # interpreter.execute(code)
+    assert run_code(code) == bf.evaluate(code) 
 
-def test_hello_wrold():
+def test_print_H_and_I():
+    code = """++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++.+."""
+    assert run_code(code) == bf.evaluate(code) 
+
+def test_hello_world():
     code = """++++++++++[>+++++++>++++++++++>+++>+<<<<-]>++.>+.+++++++..+++.>++.<<+++++++++++++++.>.+++.------.--------.>+.>."""
-    interpreter = bf.Interpreter()
-    interpreter.execute(code)
+    assert run_code(code) == bf.evaluate(code) 
