@@ -14,7 +14,6 @@ int main(int argc, char *argv[])
 {
     char buf[BUFFER_SIZE] = "\0";
     char result[BUFFER_SIZE] = "\0";
-    // TODO: bf (stdin)
     // bf file:
     if (argc == 3 && !strcmp("-c", argv[1]))
     {
@@ -24,10 +23,18 @@ int main(int argc, char *argv[])
     else
     {
         // ./bf file.bf
-        FILE *fd = fopen(argv[1], "r");
-        if (!fd)
+        FILE *fd;
+        if (argc == 1)
+            // ./bf <stdin>
+            fd = stdin;
+        else
         {
-            err(EXIT_FAILURE, "Error: can not read or find %s", argv[1]);
+            // ./bf file.bf
+            fd = fopen(argv[1], "r");
+            if (!fd)
+            {
+                err(EXIT_FAILURE, "Error: can not read or find %s", argv[1]);
+            }
         }
         parse_fd(fd, buf);
         fclose(fd);
