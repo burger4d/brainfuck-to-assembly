@@ -18,7 +18,11 @@ debug: clean_objs all
 
 check: debug tests/unit_tests.o
 	gcc $(TEST_OBJS) -lcriterion -fsanitize=address -o unit
+
+	@echo "\nLaunching the unit tests:"
 	@-./unit # if returns non-zero status because of a failed test, continue anyway
+	
+	@echo "\nLaunching the functional tests:"
 	@python3 -m venv $(VENV)
 	@$(PY) -m pip install -r tests/requirements.txt
 	@$(PY) -m pytest --tb=no

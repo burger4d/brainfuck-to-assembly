@@ -3,12 +3,14 @@ import brainfuck as bf
 import subprocess as sp
 
 def run_code(code):
+    sp.run(["rm", "a.out", "output.S"])
     sp.run(["./bf", "-c", code])
     sp.run(["gcc", "check.c", "output.S"])
     result = sp.run(["./a.out"], stdout=sp.PIPE)
     return result.stdout.decode("utf-8")
 
 def test_print_H_72_c_option():
+    sp.run(["rm", "a.out", "output.S"])
     code = """+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     +++++++."""
     assert run_code(code) == bf.evaluate(code)
@@ -17,7 +19,8 @@ def test_print_H_72_c_option():
 def test_print_H_72_stdin():
     code = """+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     +++++++."""
-    sp.run(["echo", code, "|", "./bf"])
+    sp.run(["rm", "a.out", "output.S"])
+    sp.run(f"echo '{code}' | ./bf", shell=True)
     sp.run(["gcc", "check.c", "output.S"])
     result = sp.run(["./a.out"], stdout=sp.PIPE)
     assert result.stdout.decode("utf-8") == bf.evaluate(code)
