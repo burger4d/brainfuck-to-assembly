@@ -32,6 +32,11 @@ char *convert(char *bf_code, char *buf)
     int loop_stack[1024];
     int sp = 0;
 
+    char loop_start[32];
+    char exec_start[32];
+    char loop_end[32];
+    char exec_end[32];
+
     init(buf);
 
     for (size_t i = 0; i < strlen(bf_code); i++)
@@ -56,8 +61,8 @@ char *convert(char *bf_code, char *buf)
             strcat(buf, "    call putchar@PLT\n");
             break;
         case '[':
-            char loop_start[32];
-            char exec_start[32];
+            loop_start[0] = '\0';
+            exec_start[0] = '\0';
             snprintf(loop_start, sizeof(loop_start),
                      "    jmp loop%d\n\nloop%d: # [\n", loop_id, loop_id);
             snprintf(exec_start, sizeof(exec_start), "    je execute%d # [\n",
@@ -69,8 +74,8 @@ char *convert(char *bf_code, char *buf)
             strcat(buf, exec_start);
             break;
         case ']':
-            char loop_end[32];
-            char exec_end[32];
+            loop_end[0] = '\0';
+            exec_end[0] = '\0';
             int id = loop_stack[--sp];
             snprintf(loop_end, sizeof(loop_end), "    jmp loop%d # ]\n\n", id);
             snprintf(exec_end, sizeof(exec_end), "execute%d:\n", id);
