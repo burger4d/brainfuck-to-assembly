@@ -1,4 +1,4 @@
-# A basic converter from brainfuck to assembly
+# A basic converter ("transpiler") from brainfuck to assembly
 (x86-64, System V AMD64 ABI compliant).
 
 ## Makefile rules
@@ -17,6 +17,6 @@ Once the output.S is generated, you can compile it with `gcc check.c output.S`.
 
 ## TODO:
 - ~~Add the reading on stdin~~.
-- Add tests using ','
-- Optimize multiple identical operations into a single one (72 * '+1' becomes
-'+72'...)
+- Add tests using ','.
+- ~~Optimize multiple identical operations into a single one (72 * '+1' becomes
+'+72'...)~~.

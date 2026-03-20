@@ -1,7 +1,8 @@
 #include "converter.h"
+
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <stdio.h>
 
 static void init(char *buf)
 {
@@ -26,45 +27,46 @@ static void finish(char *buf)
     strcat(buf, "    ret\n");
 }
 
-static void write_code(char last_char, int last_iter, char *buf, struct loop_ids *loop)
+static void write_code(char last_char, int last_iter, char *buf,
+                       struct loop_ids *loop)
 {
     switch (last_char)
     {
-        case '>':
-            sprintf(buf + strlen(buf), "    addq $%d, %%r13 # >\n", last_iter);
-            break;
-        case '<':
-            sprintf(buf + strlen(buf), "    subq $%d, %%r13 # <\n", last_iter);
-            break;
-        case '+':
-            sprintf(buf + strlen(buf), "    addb $%d, (%%r12, %%r13, 1) # +\n", last_iter);
-            break;
-        case '-':
-            sprintf(buf + strlen(buf), "    subb $%d, (%%r12, %%r13, 1) # -\n", last_iter);
-            break;
-        case '.':
-            sprintf(buf + strlen(buf), "    movzbq (%%r12, %%r13, 1), %%rdi # .\n");
-            sprintf(buf + strlen(buf), "    call putchar@PLT\n");
-            break;
-        case '[':
-        {
-            int id = loop->loop_id++;
-            loop->loop_stack[loop->sp++] = id;
+    case '>':
+        sprintf(buf + strlen(buf), "    addq $%d, %%r13 # >\n", last_iter);
+        break;
+    case '<':
+        sprintf(buf + strlen(buf), "    subq $%d, %%r13 # <\n", last_iter);
+        break;
+    case '+':
+        sprintf(buf + strlen(buf), "    addb $%d, (%%r12, %%r13, 1) # +\n",
+                last_iter);
+        break;
+    case '-':
+        sprintf(buf + strlen(buf), "    subb $%d, (%%r12, %%r13, 1) # -\n",
+                last_iter);
+        break;
+    case '.':
+        sprintf(buf + strlen(buf), "    movzbq (%%r12, %%r13, 1), %%rdi # .\n");
+        sprintf(buf + strlen(buf), "    call putchar@PLT\n");
+        break;
+    case '[': {
+        int id = loop->loop_id++;
+        loop->loop_stack[loop->sp++] = id;
 
-            sprintf(buf + strlen(buf), "loop%d:\n", id);
-            strcat(buf, "    cmpb $0, (%r12, %r13, 1)\n");
-            sprintf(buf + strlen(buf), "    je execute%d\n", id);
-            break;
-        }
-        case ']':
-        {
-            int id = loop->loop_stack[--loop->sp];
-            sprintf(buf + strlen(buf), "    jmp loop%d\n", id);
-            sprintf(buf + strlen(buf), "execute%d:\n", id);
-            break;
-        }
-        default:
-            fprintf(stderr, "char dismissed: %c\n", last_char);
+        sprintf(buf + strlen(buf), "loop%d:\n", id);
+        strcat(buf, "    cmpb $0, (%r12, %r13, 1)\n");
+        sprintf(buf + strlen(buf), "    je execute%d\n", id);
+        break;
+    }
+    case ']': {
+        int id = loop->loop_stack[--loop->sp];
+        sprintf(buf + strlen(buf), "    jmp loop%d\n", id);
+        sprintf(buf + strlen(buf), "execute%d:\n", id);
+        break;
+    }
+    default:
+        fprintf(stderr, "char dismissed: %c\n", last_char);
     }
 }
 
@@ -76,12 +78,11 @@ char *convert(char *bf_code, char *buf)
 
     struct loop_ids *loop = calloc(1, sizeof(struct loop_ids));
     init(buf);
-
     for (size_t i = 0; i < strlen(bf_code); i++)
     {
         char c = bf_code[i];
 
-        // Si on arrive à char non repetable on flush
+        // si char non repeatable -> on flush
         if (c == '[' || c == ']' || c == '.')
         {
             if (last_iter > 0)
@@ -99,13 +100,12 @@ char *convert(char *bf_code, char *buf)
             continue;
         }
 
+        // Si le même, incrémentation
         if (c == last_char)
         {
-            if (inside_loop && (c == '+' || c == '-'))
-                write_code(c, 1, buf, loop);
-            else
-                last_iter++;
+            last_iter++;
         }
+        // Sinon, flush et nouvelle incrémentation à 0
         else
         {
             if (last_iter > 0)
@@ -113,13 +113,6 @@ char *convert(char *bf_code, char *buf)
 
             last_char = c;
             last_iter = 1;
-
-            if (inside_loop && (c == '+' || c == '-'))
-            {
-                write_code(c, 1, buf, loop);
-                last_iter = 0;
-                last_char = '\0';
-            }
         }
     }
 
