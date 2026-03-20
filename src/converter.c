@@ -1,5 +1,7 @@
 #include "converter.h"
 
+#include <stdlib.h>
+
 static void init(char *buf)
 {
     // Start of the source code  of output.S
@@ -29,13 +31,57 @@ static void finish(char *buf)
     strcat(buf, "    ret\n");
 }
 
-static char can_repeat(char c)
+static void write_code(char last_char, int last_iter, char *buf,
+                  struct loop_ids *loop)
 {
-    // if is a char that can be repeated, return the char
-    // return \0 else
-    if (c == '>' || c == '<' || c == '+' || c == '-')
-        return c;
-    return '\0';
+    switch (last_char)
+    {
+    case '>':
+            sprintf(buf + strlen(buf), "    addq $%d, %%r13 # >\n", last_iter);
+        break;
+    case '<':
+            sprintf(buf + strlen(buf), "    subq $%d, %%r13 # <\n", last_iter);
+        break;
+    case '+':
+        sprintf(buf + strlen(buf),
+                       "    addb $%d, (%%r12, %%r13, 1) # +\n", last_iter);
+        break;
+    case '-':
+        sprintf(buf + strlen(buf),
+                       "    subb $%d, (%%r12, %%r13, 1) # -\n", last_iter);
+        break;
+    case '.':
+        sprintf(buf + strlen(buf),
+                       "    movzbq (%%r12, %%r13, 1), %%rdi # .\n");
+        sprintf(buf + strlen(buf), "    call putchar@PLT\n");
+        break;
+    case '[':
+        loop->loop_start[0] = '\0';
+        loop->exec_start[0] = '\0';
+        snprintf(loop->loop_start, sizeof(loop->loop_start),
+                 "    jmp loop%d\n\nloop%d: # [\n", loop->loop_id,
+                 loop->loop_id);
+        snprintf(loop->exec_start, sizeof(loop->exec_start),
+                 "    je execute%d # [\n", loop->loop_id);
+        loop->loop_stack[loop->sp++] = loop->loop_id;
+        loop->loop_id++;
+        strcat(buf, loop->loop_start);
+        strcat(buf, "    cmpb $0, (%r12, %r13, 1)\n");
+        strcat(buf, loop->exec_start);
+        break;
+    case ']':
+        loop->loop_end[0] = '\0';
+        loop->exec_end[0] = '\0';
+        int id = loop->loop_stack[--loop->sp];
+        snprintf(loop->loop_end, sizeof(loop->loop_end), "    jmp loop%d # ]\n\n",
+                 id);
+        snprintf(loop->exec_end, sizeof(loop->exec_end), "execute%d:\n", id);
+        strcat(buf, loop->loop_end);
+        strcat(buf, loop->exec_end);
+        break;
+    default:
+        fprintf(stderr, "char dismissed: %c\n", last_char);
+    }
 }
 
 char *convert(char *bf_code, char *buf)
@@ -45,74 +91,35 @@ char *convert(char *bf_code, char *buf)
     char last_char = '\0'; // determined by the can_repeat function
     int last_iter = 0; // how much times last_char is repeating
 
-    int loop_id = 0;
-    int loop_stack[1024];
-    int sp = 0;
-
-    char loop_start[32];
-    char exec_start[32];
-    char loop_end[32];
-    char exec_end[32];
+    struct loop_ids *loop = calloc(1, sizeof(struct loop_ids));
 
     init(buf);
 
-    for (size_t i = 0; i <= strlen(bf_code); i++)
+    for (size_t i = 0; i < strlen(bf_code); i++)
     {
         char c = bf_code[i];
+        if (c == '[' || c == ']')
+        {
+            if (last_iter > 0)
+                write_code(last_char, last_iter, buf, loop);
+            write_code(c, 1, buf, loop);
+
+            last_char = '\0';
+            last_iter = 0;
+            continue;
+        }
         if (c == last_char)
             last_iter++;
         else
         {
-            switch (last_char)
-            {
-            case '>':
-                buf += sprintf(buf + strlen(buf), "    addq $%d, %%r13 # >\n", last_iter);
-                break;
-            case '<':
-                buf += sprintf(buf + strlen(buf), "    subq $%d, %%r13 # <\n", last_iter);
-                break;
-            case '+':
-                buf += sprintf(buf + strlen(buf), "    addb $%d, (%%r12, %%r13, 1) # +\n",
-                        last_iter);
-                break;
-            case '-':
-                buf += sprintf(buf + strlen(buf), "    subb $%d, (%%r12, %%r13, 1) # -\n",
-                        last_iter);
-                break;
-            case '.':
-                buf += sprintf(buf + strlen(buf), "    movzbq (%%r12, %%r13, 1), %%rdi # .\n");
-                buf += sprintf(buf + strlen(buf), "    call putchar@PLT\n");
-                break;
-            case '[':
-                loop_start[0] = '\0';
-                exec_start[0] = '\0';
-                snprintf(loop_start, sizeof(loop_start),
-                         "    jmp loop%d\n\nloop%d: # [\n", loop_id, loop_id);
-                snprintf(exec_start, sizeof(exec_start),
-                         "    je execute%d # [\n", loop_id);
-                loop_stack[sp++] = loop_id;
-                loop_id++;
-                strcat(buf, loop_start);
-                strcat(buf, "    cmpb $0, (%r12, %r13, 1)\n");
-                strcat(buf, exec_start);
-                break;
-            case ']':
-                loop_end[0] = '\0';
-                exec_end[0] = '\0';
-                int id = loop_stack[--sp];
-                snprintf(loop_end, sizeof(loop_end), "    jmp loop%d # ]\n\n",
-                         id);
-                snprintf(exec_end, sizeof(exec_end), "execute%d:\n", id);
-                strcat(buf, loop_end);
-                strcat(buf, exec_end);
-                break;
-            default:
-                fprintf(stderr, "char dismissed: %c\n", c);
-            }
+            if (last_iter > 0)
+                write_code(last_char, last_iter, buf, loop);
             last_iter = 1;
-            last_char = can_repeat(c);
+            last_char = c;
         }
     }
+    write_code(last_char, last_iter, buf, loop);
+    free(loop);
     finish(buf);
     return buf;
 }
