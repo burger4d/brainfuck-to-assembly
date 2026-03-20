@@ -7,17 +7,17 @@ VENV=tests/env
 PY=$(VENV)/bin/python3
 
 all: $(OBJS) # linking
-	gcc $(LDFLAGS) $(OBJS) -o bf
+	@gcc $(LDFLAGS) $(OBJS) -o bf
 
 debug: CFLAGS += -g -fsanitize=address
 debug: LDFLAGS += -fsanitize=address
 debug: clean_objs all
 
 %.o: %.c # compiling
-	gcc $(CFLAGS) -o $@ -c $^
+	@gcc $(CFLAGS) -o $@ -c $^
 
 check: debug tests/unit_tests.o
-	gcc $(TEST_OBJS) -lcriterion -fsanitize=address -o unit
+	@gcc $(TEST_OBJS) -lcriterion -fsanitize=address -o unit
 
 	@echo "\nLaunching the unit tests:"
 	@-./unit # if returns non-zero status because of a failed test, continue anyway

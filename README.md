@@ -11,7 +11,7 @@
 ## Usage of the binary
 - Convert from a file: `./bf file`
 - Convert from a string: `./bf -c "[code]"`
-- Convert from stdin (TODO): `echo "[code]" | ./bf`
+- Convert from stdin: `echo "[code]" | ./bf`
 
 Once the output.S is generated, you can compile it with `gcc check.c output.S`.
 

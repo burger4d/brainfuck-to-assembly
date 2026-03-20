@@ -53,4 +53,17 @@ def test_hello_world():
 def test_hello_world_print_end_only():
     code = """++++++++++[>+++++++>++++++++++>+++>+<<<<-]>++>+++++++++++>++<<+++
     ++++++++++++>+++-------------->+>."""
-    assert run_code(code) == bf.evaluate(code) 
+    assert run_code(code) == bf.evaluate(code)
+
+def test_simple_input():
+    code = """,."""
+    assert run_code(code) == bf.evaluate(code)
+
+def test_back_to_zero():
+    code = """,[-]."""
+    assert run_code(code) == bf.evaluate(code)
+
+def test_empty():
+    code = """"""
+    assert run_code(code) == bf.evaluate(code)
+
