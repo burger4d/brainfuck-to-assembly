@@ -1,2 +1,3 @@
 brainfuck-interpreter
 pytest
+pytest-timeout
