@@ -1,6 +1,6 @@
-SRCS=src/execution.c src/converter.c src/parser.c
+SRCS=src/execution.c src/converter/converter.c src/parser/parser.c
 OBJS=$(SRCS:.c=.o)
-TEST_OBJS=src/converter.o src/parser.o tests/unit_tests.o
+TEST_OBJS=src/converter/converter.o src/parser/parser.o tests/unit_tests.o
 CFLAGS=-std=c99 -pedantic -Werror -Wall -Wextra -Wvla
 
 VENV=tests/env

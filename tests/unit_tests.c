@@ -1,7 +1,7 @@
 #include <criterion/criterion.h>
 #include <stdio.h>
 
-#include "../src/parser.h"
+#include "../src/parser/parser.h"
 
 #define BUFFER_SIZE 60000
 

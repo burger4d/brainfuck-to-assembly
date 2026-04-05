@@ -5,8 +5,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "converter.h"
-#include "parser.h"
+#include "converter/converter.h"
+#include "parser/parser.h"
 
 #define BUFFER_SIZE 60000
 
