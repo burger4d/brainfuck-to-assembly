@@ -65,6 +65,11 @@ static void write_code(char last_char, int last_iter, char *buf,
         sprintf(buf + strlen(buf), "execute%d:\n", id);
         break;
     }
+    case ',': {
+        strcat(buf, "    call getchar@PLT\n");
+        sprintf(buf + strlen(buf), "    movb %%al, (%%r12, %%r13, 1) # ,\n");
+        break;
+    }
     default:
         fprintf(stderr, "char dismissed: %c\n", last_char);
     }
@@ -83,10 +88,17 @@ char *convert(char *bf_code, char *buf)
         char c = bf_code[i];
 
         // si char non repeatable -> on flush
-        if (c == '[' || c == ']' || c == '.')
+        if (c == '[' || c == ']' || c == '.' || c == ',')
         {
             if (last_iter > 0)
                 write_code(last_char, last_iter, buf, loop);
+
+            if (c == ']' && inside_loop == 0)
+            {
+                fprintf(stderr, "Error: unmatched ']' at position %zu\n", i);
+                free(loop);
+                return NULL;
+            }
 
             write_code(c, 1, buf, loop);
 
@@ -119,6 +131,12 @@ char *convert(char *bf_code, char *buf)
     if (last_iter > 0)
         write_code(last_char, last_iter, buf, loop);
 
+    if (inside_loop != 0)
+    {
+        fprintf(stderr, "Error: %d unmatched '['\n", inside_loop);
+        free(loop);
+        return NULL;
+    }
     free(loop);
     finish(buf);
     return buf;

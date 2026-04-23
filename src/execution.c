@@ -40,7 +40,9 @@ int main(int argc, char *argv[])
         fclose(fd);
     }
 
-    convert(buf, result); // '++comM ents +' -> '+++'
+    char *c = convert(buf, result); // '++comM ents +' -> '+++'
+    if (!c)
+        exit(1);
     FILE *output = fopen("output.S", "w");
     if (!output)
     {
